@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>JSON Data Rendering</title>
+  <style>
+     <link rel="stylesheet" href="styles.css">
+  </style>
+</head>
+<body>
+  <h1>Employee Data</h1>
+  <input type="text" id="searchInput" placeholder="Search by name">
+  <select id="filterSelect">
+    <option value="">Filter by designation/skills</option>
+    <option value="Senior Developer">Senior Developer</option>
+    <option value="QA Engineer">QA Engineer</option>
+    <!-- Add other designation/skills options based on the JSON data -->
+  </select>
+  <div id="employeesContainer"></div>
+
+  <script>
+    // Fetch JSON data from the source URL
+    fetch('https://raw.githubusercontent.com/dixitsoham7/dixitsoham7.github.io/main/index.json')
+      .then(response => response.json())
+      .then(data => {
+        const employeesContainer = document.getElementById('employeesContainer');
+        const searchInput = document.getElementById('searchInput');
+        const filterSelect = document.getElementById('filterSelect');
+
+        // Function to render the JSON data
+        function renderData(data) {
+          employeesContainer.innerHTML = ''; // Clear previous data
+
+          // Filter employees based on search input and filter select
+          const searchValue = searchInput.value.toLowerCase();
+          const filterValue = filterSelect.value;
+          const filteredEmployees = data.employees.filter(employee => {
+            const nameMatch = employee.name.toLowerCase().includes(searchValue);
+            const filterMatch = filterValue === '' || employee.designation === filterValue;
+            return nameMatch && filterMatch;
+          });
+
+          // Loop through filtered employees and create HTML elements to display their information
+          filteredEmployees.forEach(employee => {
+            const employeeDiv = document.createElement('div');
+            employeeDiv.innerHTML = `
+              <h2>${employee.name}</h2>
+              <p>Designation: ${employee.designation}</p>
+              <p>Skills: ${employee.skills.join(', ')}</p>
+              <!-- Add other fields you want to display -->
+
+              <!-- Render projects, team members, and tasks -->
+              <h3>Projects</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Project Name</th>
+                    <th>Team Size</th>
+                    <th>Completed Tasks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${employee.projects.map(project => `
+                    <tr>
+                      <td>${project.name}</td>
+                      <td>${project.team.length}</td>
+                      <td>${project.tasks.filter(task => task.status === 'Completed').length}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            `;
+
+            employeesContainer.appendChild(employeeDiv);
+          });
+        }
+
+        // Render initial data
+        renderData(data);
+
+        // Event listeners for search input and filter select
+        searchInput.addEventListener('input', () => renderData(data));
+        filterSelect.addEventListener('change', () => renderData(data));
+      })
+      .catch(error => console.log('Error fetching JSON data:', error));
+  </script>
+</body>
+</html>
